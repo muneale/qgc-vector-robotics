@@ -82,3 +82,15 @@ SOURCES += \
     $$PWD/src/FirmwarePlugin/CustomFirmwarePlugin.cc \
     $$PWD/src/FirmwarePlugin/CustomFirmwarePluginFactory.cc \
 
+
+#-------------------------------------------------------------------------------------
+# Custom Button
+
+INCLUDEPATH += \
+    $$PWD/src/SensorModeButton
+
+HEADERS += \
+    $$PWD/src/SensorModeButton/SensorModeButton.h
+
+SOURCES += \
+    $$PWD/src/SensorModeButton/SensorModeButton.cc

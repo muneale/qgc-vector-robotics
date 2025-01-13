@@ -1,0 +1,3 @@
+module Custom.Buttons
+
+CustomSensorModeButton 1.0 CustomSensorModeButton.qml

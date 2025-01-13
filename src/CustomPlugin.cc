@@ -23,6 +23,7 @@
 #include "AppMessages.h"
 #include "QmlComponentInfo.h"
 #include "QGCPalette.h"
+#include "SensorModeButton/SensorModeButton.h"
 
 QGC_LOGGING_CATEGORY(CustomLog, "CustomLog")
 
@@ -366,6 +367,12 @@ void CustomPlugin::paletteOverride(QString colorName, QGCPalette::PaletteColorIn
 QQmlApplicationEngine* CustomPlugin::createQmlApplicationEngine(QObject* parent)
 {
     QQmlApplicationEngine* qmlEngine = QGCCorePlugin::createQmlApplicationEngine(parent);
+
+    // qmlRegisterType<SensorModeButton>("Custom.Buttons", 1, 0, "SensorModeButton");
+    qmlRegisterType<SensorModeButton>("Custom", 1, 0, "SensorModeButton");
+
     qmlEngine->addImportPath("qrc:/Custom/Widgets");
+    qmlEngine->addImportPath("qrc:/Custom/Buttons");
+
     return qmlEngine;
 }

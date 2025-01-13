@@ -6,6 +6,7 @@ import QGroundControl.Controllers 1.0
 import QGroundControl.Controls 1.0
 import QGroundControl.Palette 1.0
 import QGroundControl 1.0
+import Custom.Buttons 1.0
 
 Rectangle {
     id: mainToolBar
@@ -32,6 +33,11 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: 2
                 spacing: 4
+
+                CustomSensorModeButton {
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 12
+                }
                 
                 ColumnLayout {
                     Layout.fillHeight: true

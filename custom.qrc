@@ -32,4 +32,8 @@
         <file alias="QGroundControl/Controls/MainToolBar.qml">src/ui/toolbar/CustomMainToolBar.qml</file>
         <file alias="QGroundControl/FlightDisplay/FlyViewCustomLayer.qml">res/CustomFlyViewOverlay.qml</file>
     </qresource>
+    <qresource prefix="Custom/Buttons">
+        <file alias="Custom/Buttons/CustomSensorModeButton.qml">res/Custom/Buttons/CustomSensorModeButton.qml</file>
+        <file alias="Custom/Buttons/qmldir">res/Custom/Buttons/qmldir</file>
+    </qresource>
 </RCC>
