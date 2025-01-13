@@ -1,225 +1,235 @@
-/****************************************************************************
- *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
- *
- * QGroundControl is licensed according to the terms in the file
- * COPYING.md in the root of the source code directory.
- *
- ****************************************************************************/
-
-import QtQuick          2.12
-import QtQuick.Controls 2.4
-import QtQuick.Layouts  1.11
-import QtQuick.Dialogs  1.3
-
-import QGroundControl                       1.0
-import QGroundControl.Controls              1.0
-import QGroundControl.Palette               1.0
-import QGroundControl.MultiVehicleManager   1.0
-import QGroundControl.ScreenTools           1.0
-import QGroundControl.Controllers           1.0
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QGroundControl.ScreenTools 1.0
+import QGroundControl.Controllers 1.0
+import QGroundControl.Controls 1.0
+import QGroundControl.Palette 1.0
+import QGroundControl 1.0
 
 Rectangle {
-    id:     _root
-    color:  qgcPal.toolbarBackground
+    id: mainToolBar
+    height: ScreenTools.toolbarHeight
+    color: qgcPal.windowShade
 
-    property int currentToolbar: flyViewToolbar
+    QGCPalette { id: qgcPal; colorGroupEnabled: true }
 
-    readonly property int flyViewToolbar:   0
-    readonly property int planViewToolbar:  1
-    readonly property int simpleToolbar:    2
-
-    property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
-    property bool   _communicationLost: _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
-    property color  _mainStatusBGColor: qgcPal.brandingPurple
-
-    function dropMessageIndicatorTool() {
-        if (currentToolbar === flyViewToolbar) {
-            indicatorLoader.item.dropMessageIndicatorTool();
-        }
-    }
-
-    QGCPalette { id: qgcPal }
-
-    /// Bottom single pixel divider
-    Rectangle {
-        anchors.left:   parent.left
-        anchors.right:  parent.right
-        anchors.bottom: parent.bottom
-        height:         1
-        color:          "black"
-        visible:        qgcPal.globalTheme === QGCPalette.Light
-    }
-
-    Rectangle {
-        anchors.fill:   viewButtonRow
-        visible:        currentToolbar === flyViewToolbar
-
-        gradient: Gradient {
-            orientation: Gradient.Horizontal
-            GradientStop { position: 0;                                     color: _mainStatusBGColor }
-            GradientStop { position: currentButton.x + currentButton.width; color: _mainStatusBGColor }
-            GradientStop { position: 1;                                     color: _root.color }
-        }
-    }
+    property var activeVehicle: QGroundControl.multiVehicleManager.activeVehicle
+    property var missionController: QGroundControl.missionController
 
     RowLayout {
-        id:                     viewButtonRow
-        anchors.bottomMargin:   1
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        spacing:                ScreenTools.defaultFontPixelWidth / 2
+        anchors.fill: parent
+        spacing: 0
 
-        QGCToolBarButton {
-            id:                     currentButton
-            Layout.preferredHeight: viewButtonRow.height
-            icon.source:            "/res/QGCLogoFull"
-            logo:                   true
-            onClicked:              mainWindow.showToolSelectDialog()
-        }
-
-        MainStatusIndicator {
-            Layout.preferredHeight: viewButtonRow.height
-            visible:                currentToolbar === flyViewToolbar
-        }
-
-        QGCButton {
-            id:                 disconnectButton
-            text:               qsTr("Disconnect")
-            onClicked:          _activeVehicle.closeVehicle()
-            visible:            _activeVehicle && _communicationLost && currentToolbar === flyViewToolbar
-        }
-    }
-
-    QGCFlickable {
-        id:                     toolsFlickable
-        anchors.leftMargin:     ScreenTools.defaultFontPixelWidth * ScreenTools.largeFontPointRatio * 1.5
-        anchors.left:           viewButtonRow.right
-        anchors.bottomMargin:   1
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        anchors.right:          parent.right
-        contentWidth:           indicatorLoader.x + indicatorLoader.width
-        flickableDirection:     Flickable.HorizontalFlick
-
-        Loader {
-            id:                 indicatorLoader
-            anchors.left:       parent.left
-            anchors.top:        parent.top
-            anchors.bottom:     parent.bottom
-            source:             currentToolbar === flyViewToolbar ?
-                                    "qrc:/toolbar/MainToolBarIndicators.qml" :
-                                    (currentToolbar == planViewToolbar ? "qrc:/qml/PlanToolBarIndicators.qml" : "")
-        }
-    }
-
-    //-------------------------------------------------------------------------
-    //-- Branding Logo
-    Image {
-        anchors.right:          parent.right
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        anchors.margins:        ScreenTools.defaultFontPixelHeight * 0.66
-        visible:                currentToolbar !== planViewToolbar && _activeVehicle && !_communicationLost && x > (toolsFlickable.x + toolsFlickable.contentWidth + ScreenTools.defaultFontPixelWidth)
-        fillMode:               Image.PreserveAspectFit
-        source:                 _outdoorPalette ? _brandImageOutdoor : _brandImageIndoor
-        mipmap:                 true
-
-        property bool   _outdoorPalette:        qgcPal.globalTheme === QGCPalette.Light
-        property bool   _corePluginBranding:    QGroundControl.corePlugin.brandImageIndoor.length != 0
-        property string _userBrandImageIndoor:  QGroundControl.settingsManager.brandImageSettings.userBrandImageIndoor.value
-        property string _userBrandImageOutdoor: QGroundControl.settingsManager.brandImageSettings.userBrandImageOutdoor.value
-        property bool   _userBrandingIndoor:    _userBrandImageIndoor.length != 0
-        property bool   _userBrandingOutdoor:   _userBrandImageOutdoor.length != 0
-        property string _brandImageIndoor:      brandImageIndoor()
-        property string _brandImageOutdoor:     brandImageOutdoor()
-
-        function brandImageIndoor() {
-            if (_userBrandingIndoor) {
-                return _userBrandImageIndoor
-            } else {
-                if (_userBrandingOutdoor) {
-                    return _userBrandingOutdoor
-                } else {
-                    if (_corePluginBranding) {
-                        return QGroundControl.corePlugin.brandImageIndoor
-                    } else {
-                        return _activeVehicle ? _activeVehicle.brandImageIndoor : ""
+        Rectangle {
+            Layout.preferredWidth: parent.width * 0.2
+            height: parent.height
+            color: "transparent"
+            border.width: 1
+            border.color: qgcPal.windowShadeLight
+            
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 2
+                spacing: 4
+                
+                ColumnLayout {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    spacing: 2
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        QGCColoredImage {
+                            source:             "/qmlimages/Battery.svg"
+                            height:             ScreenTools.defaultFontPixelHeight
+                            width:              height
+                            sourceSize.height:  height
+                            fillMode:           Image.PreserveAspectFit
+                            color:              activeVehicle && activeVehicle.battery1.percentRemaining > 20 ? "lime" : "red"
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignLeft
+                            text: activeVehicle ? (activeVehicle.battery1.percentRemaining.toFixed(0) || "0") + "%" : "---%"
+                            color: activeVehicle && activeVehicle.battery1.percentRemaining > 20 ? "lime" : "red"
+                            font.pixelSize: ScreenTools.defaultFontPixelSize
+                            font.bold: true
+                            elide: Text.ElideRight
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        QGCColoredImage {
+                            source:             "/qmlimages/Battery.svg"
+                            height:             ScreenTools.defaultFontPixelHeight
+                            width:              height
+                            sourceSize.height:  height
+                            fillMode:           Image.PreserveAspectFit
+                            color:              activeVehicle && activeVehicle.battery2.percentRemaining > 20 ? "lime" : "red"
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignLeft
+                            text: activeVehicle ? (activeVehicle.battery2.percentRemaining.toFixed(0) || "0") + "%" : "---%"
+                            color: activeVehicle && activeVehicle.battery2.percentRemaining > 20 ? "lime" : "red"
+                            font.pixelSize: ScreenTools.defaultFontPixelSize
+                            font.bold: true
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+                
+                ColumnLayout {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    spacing: 2
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        QGCColoredImage {
+                            source:             "/qmlimages/Signal.svg"
+                            height:             ScreenTools.defaultFontPixelHeight
+                            width:              height
+                            sourceSize.height:  height
+                            fillMode:           Image.PreserveAspectFit
+                            color:              activeVehicle && activeVehicle.rcRSSI.value > 40 ? "lime" : "red"
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignLeft
+                            text: activeVehicle ? (activeVehicle.rcRSSI.valueString || "0") + "%" : "---%"
+                            color: activeVehicle && activeVehicle.rcRSSI.value > 40 ? "lime" : "red"
+                            font.pixelSize: ScreenTools.defaultFontPixelSize
+                            font.bold: true
+                            elide: Text.ElideRight
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        QGCColoredImage {
+                            source:             "/qmlimages/GPS.svg"
+                            height:             ScreenTools.defaultFontPixelHeight
+                            width:              height
+                            sourceSize.height:  height
+                            fillMode:           Image.PreserveAspectFit
+                            color:              activeVehicle && activeVehicle.gps.count.value >= 6 ? "lime" : "red"
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignLeft
+                            text: activeVehicle ? (activeVehicle.gps.count.value || "0") + "+" : "---+"
+                            color: activeVehicle && activeVehicle.gps.count.value >= 6 ? "lime" : "red"
+                            font.pixelSize: ScreenTools.defaultFontPixelSize
+                            font.bold: true
+                            elide: Text.ElideRight
+                        }
                     }
                 }
             }
-        }
-
-        function brandImageOutdoor() {
-            if (_userBrandingOutdoor) {
-                return _userBrandingOutdoor
-            } else {
-                if (_userBrandingIndoor) {
-                    return _userBrandingIndoor
-                } else {
-                    if (_corePluginBranding) {
-                        return QGroundControl.corePlugin.brandImageOutdoor
-                    } else {
-                        return _activeVehicle ? _activeVehicle.brandImageOutdoor : ""
-                    }
-                }
-            }
-        }
-    }
-
-    // Small parameter download progress bar
-    Rectangle {
-        anchors.bottom: parent.bottom
-        height:         _root.height * 0.05
-        width:          _activeVehicle ? _activeVehicle.loadProgress * parent.width : 0
-        color:          qgcPal.colorGreen
-        visible:        !largeProgressBar.visible
-    }
-
-    // Large parameter download progress bar
-    Rectangle {
-        id:             largeProgressBar
-        anchors.bottom: parent.bottom
-        anchors.left:   parent.left
-        anchors.right:  parent.right
-        height:         parent.height
-        color:          qgcPal.window
-        visible:        _showLargeProgress
-
-        property bool _initialDownloadComplete: _activeVehicle ? _activeVehicle.initialConnectComplete : true
-        property bool _userHide:                false
-        property bool _showLargeProgress:       !_initialDownloadComplete && !_userHide && qgcPal.globalTheme === QGCPalette.Light
-
-        Connections {
-            target:                 QGroundControl.multiVehicleManager
-            function onActiveVehicleChanged(activeVehicle) { largeProgressBar._userHide = false }
         }
 
         Rectangle {
-            anchors.top:    parent.top
-            anchors.bottom: parent.bottom
-            width:          _activeVehicle ? _activeVehicle.loadProgress * parent.width : 0
-            color:          qgcPal.colorGreen
+            Layout.preferredWidth: parent.width * 0.2
+            height: parent.height
+            color: "transparent"
+            border.width: 1
+            border.color: qgcPal.windowShadeLight
+
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 2
+
+                Text {
+                    text: "Mission Time: " + (activeVehicle ? activeVehicle.flightTime : "00:00:00")
+                    color: qgcPal.text
+                    font.pixelSize: ScreenTools.defaultFontPixelSize
+                    font.bold: true
+                }
+
+                Text {
+                    text: "Flight Time: " + (activeVehicle ? activeVehicle.flightTime : "00:00:00")
+                    color: qgcPal.text
+                    font.pixelSize: ScreenTools.defaultFontPixelSize
+                    font.bold: true
+                }
+            }
         }
 
-        QGCLabel {
-            anchors.centerIn:   parent
-            text:               qsTr("Downloading")
-            font.pointSize:     ScreenTools.largeFontPointSize
+        Rectangle {
+            Layout.preferredWidth: parent.width * 0.2
+            height: parent.height
+            color: "transparent"
+            border.width: 1
+            border.color: qgcPal.windowShadeLight
+
+            RowLayout {
+                spacing: 10
+                anchors.centerIn: parent
+
+                Text {
+                    // text: "AZ " + targetHeading + "° DST " + targetDistance + "m"
+                    text: "AZ ---° DST --- m"
+                    color: "gold"
+                    font.pixelSize: ScreenTools.defaultFontPixelSize
+                    font.bold: true
+                }
+
+            }
         }
 
-        QGCLabel {
-            anchors.margins:    _margin
-            anchors.right:      parent.right
-            anchors.bottom:     parent.bottom
-            text:               qsTr("Click anywhere to hide")
+        Rectangle {
+            Layout.preferredWidth: parent.width * 0.4
+            height: parent.height
+            color: "transparent"
+            border.width: 1
+            border.color: qgcPal.windowShadeLight
 
-            property real _margin: ScreenTools.defaultFontPixelWidth / 2
-        }
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 2
 
-        MouseArea {
-            anchors.fill:   parent
-            onClicked:      largeProgressBar._userHide = true
+                Text {
+                    text: activeVehicle ? 
+                        "▲ " + (activeVehicle.coordinate.latitude.toFixed(5) || "0.00000") + 
+                        ", " + (activeVehicle.coordinate.longitude.toFixed(6) || "0.000000") :
+                        "▲ ---.-----, ---.------"
+                    color: qgcPal.text
+                    font.pixelSize: ScreenTools.defaultFontPixelSize
+                    font.bold: true
+                }
+
+                RowLayout {
+                    spacing: 10
+                    
+                    Text {
+                        text: activeVehicle ? 
+                              "AZ " + (activeVehicle.heading.value.toFixed(0) || "0") + "°" : "AZ ---°"
+                        color: qgcPal.text
+                        font.pixelSize: ScreenTools.defaultFontPixelSize
+                        font.bold: true
+                    }
+
+                    Text {
+                        text: activeVehicle ? 
+                              "ALT " + (activeVehicle.altitudeRelative.value.toFixed(1) || "0") + "m" : "ALT ---m"
+                        color: qgcPal.text
+                        font.pixelSize: ScreenTools.defaultFontPixelSize
+                        font.bold: true
+                    }
+
+                    Text {
+                        text: activeVehicle ? 
+                              "GS " + (activeVehicle.groundSpeed.value.toFixed(1) || "0") + "m/s" :
+                              "GS ---m/s"
+                        color: qgcPal.text
+                        font.pixelSize: ScreenTools.defaultFontPixelSize
+                        font.bold: true
+                    }
+                }
+            }
         }
     }
 }
