@@ -1,4 +1,3 @@
-// SensorModeButton.qml
 import QtQuick          2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts  1.15
@@ -6,50 +5,49 @@ import QGroundControl.Palette 1.0
 import QGroundControl.ScreenTools 1.0
 import Custom 1.0
 
-Button {
+Item {
     id: root
     
+    property var vehicle: QGroundControl.multiVehicleManager.activeVehicle
+    
     // Set explicit size based on toolbar height
-    implicitWidth: ScreenTools.defaultFontPixelWidth * 12
-    implicitHeight: parent.height - 4  // Leave small margin
+    implicitWidth: button.implicitWidth
+    implicitHeight: button.implicitHeight
 
-    // Use QGC palette for consistent styling
-    QGCPalette { id: qgcPal; colorGroupEnabled: enabled }
-    
-    background: Rectangle {
-        color: root.pressed ? qgcPal.buttonHighlight : qgcPal.button
-        border.color: qgcPal.buttonText
-        border.width: 1
-        radius: 3
-    }
-    
-    contentItem: Text {
-        text: qsTr("Sensor Mode")
-        color: qgcPal.buttonText
-        font.pixelSize: ScreenTools.defaultFontPixelSize
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-    }
-    
-    SensorModeButton {
-        id: sensorButton
+    Button {
+        id: button
+        anchors.fill: parent
         
-        Component.onCompleted: {
-            if (QGroundControl.multiVehicleManager.activeVehicle) {
-                vehicle = QGroundControl.multiVehicleManager.activeVehicle
+        implicitWidth: ScreenTools.defaultFontPixelWidth * 12
+        implicitHeight: parent.height - 4  // Leave small margin
+
+        // Use QGC palette for consistent styling
+        QGCPalette { id: qgcPal; colorGroupEnabled: enabled }
+        
+        background: Rectangle {
+            color: button.pressed ? qgcPal.buttonHighlight : qgcPal.button
+            border.color: qgcPal.buttonText
+            border.width: 1
+            radius: 3
+        }
+        
+        contentItem: Text {
+            text: qsTr("Sensor Mode")
+            color: qgcPal.buttonText
+            font.pixelSize: ScreenTools.defaultFontPixelSize
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
+        
+        onClicked: {
+            if (sensorButton.vehicle) {
+                sensorButton.sendCommand()
             }
         }
     }
-    
-    Connections {
-        target: QGroundControl.multiVehicleManager
-        
-        function onActiveVehicleChanged() {
-            sensorButton.vehicle = QGroundControl.multiVehicleManager.activeVehicle
-        }
-    }
-    
-    onClicked: {
-        sensorButton.sendCommand()
+
+    SensorModeButton {
+        id: sensorButton
+        vehicle: root.vehicle
     }
 }

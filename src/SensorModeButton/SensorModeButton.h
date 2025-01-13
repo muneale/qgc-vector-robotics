@@ -1,6 +1,6 @@
-// SensorModeButton.h
 #pragma once
 
+#include <QPointer>
 #include <QQuickItem>
 #include "Vehicle/Vehicle.h"
 
@@ -22,6 +22,6 @@ public slots:
     Q_INVOKABLE void sendCommand();
 
 private:
-    Vehicle* _vehicle;
+    QPointer<Vehicle> _vehicle;
     int _mode = 0;
 };
